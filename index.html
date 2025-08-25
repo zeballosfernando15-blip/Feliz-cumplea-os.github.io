@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎉 Feliz Cumpleaños con Fuegos Artificiales</title>
+<style>
+    body {
+        margin: 0;
+        background: black;
+        color: white;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        overflow: hidden;
+    }
+    canvas {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        z-index: -1;
+        display: block;
+    }
+    .balloons { margin-top: 50px; }
+    .balloon {
+      display: inline-block;
+      width: 60px; height: 80px;
+      margin: 10px;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      position: relative;
+      font-size: 24px;
+      line-height: 80px;
+      font-weight: bold;
+      animation: float 3s ease-in-out infinite;
+    }
+    .balloon:nth-child(1) { background-color: #e91e63; color: white; }
+    .balloon:nth-child(2) { background-color: #ffffff; color: #e91e63; text-shadow: 0 0 5px #000; }
+    .balloon:nth-child(3) { background-color: #e91e63; color: white; }
+    .balloon:nth-child(4) { background-color: #ffffff; color: #e91e63; text-shadow: 0 0 5px #000; }
+    .balloon:nth-child(5) { background-color: #e91e63; color: white; }
+    h2 { margin-top: 30px; font-size: clamp(18px, 4vw, 24px); }
+    h1 { font-size: clamp(24px, 6vw, 36px); margin: 10px 0; color: #ff4081; }
+    .cake-image {
+      margin: 30px auto;
+      max-width: 70%; width: 200px; height: auto;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #fff;
+    }
+    #surpriseMessage {
+      display: none;
+      font-size: 20px;
+      margin-top: 5px;
+      color: #ffcc00;
+    }
+    @keyframes float {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+      100% { transform: translateY(0); }
+    }
+    .fade-in { animation: fadeInSmooth 4s ease forwards; }
+    @keyframes fadeInSmooth {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+</head>
+<body>
+<canvas id="fireworksCanvas"></canvas>
+
+<div class="balloons">
+  <div class="balloon">☺</div>
+  <div class="balloon">L</div>
+  <div class="balloon">O</div>
+  <div class="balloon">V</div>
+  <div class="balloon">E</div>
+</div>
+<h2>Happy 25<sup>th</sup> Birthday</h2>
+<h1>DAYANA MICHELLY</h1>
+<img class="cake-image" 
+     src="https://media.istockphoto.com/id/1742444920/es/vector/render-de-pastel-3d-con-vela-serpentina-popper-estrellas.jpg?s=612x612&w=0&k=20&c=t_wInSge_vNFqefS6W5yNZUdzo9WjzlT58mveLPJ1NU=" 
+     alt="Pastel de cumpleaños con vela y estrellas en 3D"/>
+<div id="surpriseMessage">🎉 ¡Que todos tus sueños se hagan realidad, Dayana! 🎂</div>
+
+<!-- Música: inicia en silencio -->
+<audio id="birthdayMusic" src="ssstik.io__alexx.dev_1753735011718-_1_-_1_.mp3" autoplay loop muted></audio>
+
+<script>
+  // Mensaje sorpresa
+  setTimeout(() => {
+    const msg = document.getElementById('surpriseMessage');
+    msg.style.display = 'block';
+    msg.classList.add('fade-in');
+  }, 3000);
+
+  // Música autoplay seguro: activa volumen al primer clic
+  const music = document.getElementById("birthdayMusic");
+  document.body.addEventListener("click", () => {
+    music.muted = false;  
+  }, { once: true });
+
+  // 🎆 FUEGOS ARTIFICIALES
+  const canvas = document.getElementById('fireworksCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+  });
+
+  class Particle {
+      constructor(x, y, color, speed, angle) {
+          this.x = x; this.y = y; this.color = color;
+          this.speed = speed; this.angle = angle + (Math.random() - 0.5) * 0.2;
+          this.alpha = 1;
+          this.radius = Math.random() * 3 + 1;
+          this.gravity = 0.035 + Math.random() * 0.025;
+          this.friction = 0.975;
+      }
+      update() {
+          this.x += Math.cos(this.angle) * this.speed;
+          this.y += Math.sin(this.angle) * this.speed + this.gravity;
+          this.speed *= this.friction;
+          this.alpha -= 0.010 + Math.random() * 0.003;
+      }
+      draw() {
+          ctx.globalAlpha = this.alpha;
+          const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+          gradient.addColorStop(0, "#fff");
+          gradient.addColorStop(0.2, this.color);
+          gradient.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+      }
+  }
+
+  class Firework {
+      constructor(sx, sy, tx, ty) {
+          this.x = sx; this.y = sy; this.tx = tx; this.ty = ty;
+          this.speed = 3 + Math.random() * 1.5;
+          this.angle = -Math.PI / 2;
+          this.particles = []; this.exploded = false;
+          this.trail = []; this.trailColor = '#ffd699';
+          this.colors = ['#ff4d4d','#ff9933','#ffff66','#66ff66','#66ffff','#6666ff','#cc66ff','#ff66cc','#ffffff'];
+      }
+      update() {
+          if (!this.exploded) {
+              this.trail.push({x: this.x, y: this.y});
+              if (this.trail.length > 15) this.trail.shift();
+              const vx = Math.cos(this.angle) * this.speed;
+              const vy = Math.sin(this.angle) * this.speed;
+              this.x += vx; this.y += vy;
+              if (Math.abs(this.y - this.ty) < 3) { this.explode(); this.exploded = true; }
+          } else {
+              this.particles.forEach(p => p.update());
+              this.particles = this.particles.filter(p => p.alpha > 0);
+          }
+      }
+      explode() {
+          let numParticles = binomialRandom(200, 0.7); // distribución binomial
+          for (let i = 0; i < numParticles; i++) {
+              const angle = Math.random() * Math.PI * 2;
+              const speed = Math.random() * 8 + 4;
+              const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+              this.particles.push(new Particle(this.x, this.y, color, speed, angle));
+          }
+      }
+      draw() {
+          if (!this.exploded) {
+              ctx.beginPath();
+              ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+              ctx.fillStyle = this.trailColor; ctx.fill();
+
+              ctx.beginPath();
+              ctx.strokeStyle = this.trailColor; ctx.lineWidth = 2;
+              for (let i = 0; i < this.trail.length - 1; i++) {
+                  ctx.moveTo(this.trail[i].x, this.trail[i].y);
+                  ctx.lineTo(this.trail[i + 1].x, this.trail[i + 1].y);
+              }
+              ctx.stroke();
+          } else {
+              this.particles.forEach(p => p.draw());
+          }
+      }
+  }
+
+  // Binomial
+  function binomialRandom(n, p) {
+      let count = 0;
+      for (let i = 0; i < n; i++) if (Math.random() < p) count++;
+      return count;
+  }
+
+  let fireworks = [];
+  function animate() {
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.globalCompositeOperation = "lighter"; // efecto brillante
+      fireworks.forEach((fw, index) => {
+          fw.update(); fw.draw();
+          if (fw.exploded && fw.particles.length === 0) fireworks.splice(index, 1);
+      });
+      requestAnimationFrame(animate);
+  }
+
+  // Lanzamiento binomial automático
+  setInterval(() => {
+      let n = 12, p = 0.5;
+      let result = binomialRandom(n, p);
+      let startX = (result / n) * canvas.width;
+      let startY = canvas.height;
+      let targetY = Math.random() * canvas.height * 0.5;
+      let targetX = startX + (Math.random() - 0.5) * 120;
+      fireworks.push(new Firework(startX, startY, targetX, targetY));
+  }, 500);
+
+  // Interactivo con clic
+  canvas.addEventListener("click", (e) => {
+      fireworks.push(new Firework(e.clientX, canvas.height, e.clientX, e.clientY));
+  });
+
+  animate();
+</script>
+</body>
+</html>
+
